@@ -1,0 +1,6 @@
+streamlit
+whisper
+moviepy
+tempfile
+google.generativeai
+youtube_transcript_api

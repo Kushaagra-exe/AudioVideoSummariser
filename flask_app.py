@@ -7,12 +7,11 @@ load_dotenv()
 
 API_KEY = os.getenv("API_KEY")
 genai.configure(api_key=API_KEY)
-model = genai.GenerativeModel("gemini-pro")
 
 
 def generate_gemini_content(transcript_text, prompt):
-    model = genai.GenerativeModel("gemini-pro")
-    response=model.generate_content(prompt+transcript_text)
+    genmodel = genai.GenerativeModel("gemini-pro")
+    response=genmodel.generate_content(prompt+transcript_text)
     return response.text
 
 prompt="""You are Yotube video summarizer. You will be taking the transcript text and summarizing the entire video and providing the important summary in points within 250 words. Text:"""
