@@ -8,7 +8,6 @@ load_dotenv()
 API_KEY = os.getenv("API_KEY")
 genai.configure(api_key=API_KEY)
 
-
 def generate_gemini_content(transcript_text, prompt):
     genmodel = genai.GenerativeModel("gemini-pro")
     response=genmodel.generate_content(prompt+transcript_text)
