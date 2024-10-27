@@ -4,6 +4,7 @@ from moviepy.editor import VideoFileClip
 import tempfile
 import google.generativeai as genai
 from youtube_transcript_api import YouTubeTranscriptApi
+from youtube_transcript_api._errors import NoTranscriptFound
 
 st.title("Summarisation App for Education")
 API_KEY = st.sidebar.text_input("Enter your Gemini Api Key:")
@@ -14,7 +15,7 @@ if API_KEY:
     genai.configure(api_key=API_KEY)
 
 genmodel = genai.GenerativeModel("gemini-pro")
-prompt="""You are Text summarizer. You will be taking the transcript text of a video or an audio and summarizing the entire text in detail and providing the summary in points. Text:"""
+prompt="""You are Text summarizer. You will be taking the transcript text of a video or an audio and summarizing the entire text in detail and providing the summary in points and in english only. Text:"""
 model = whisper.load_model("base")
 
 
@@ -45,9 +46,21 @@ def transcribe_video(video_file):
             video.close()
 
 def transcribe_yt(id):
-    transript = YouTubeTranscriptApi.get_transcript(id)
+    trans = ''
+    try:
+        transcript = YouTubeTranscriptApi.get_transcript(id, languages=['en'])
+        trans = transcript
+    except NoTranscriptFound:
+        try:
+            transcript = YouTubeTranscriptApi.get_transcript(id, languages=['hi'])
+            trans = transcript
+
+        except NoTranscriptFound:
+            print("No transcript found for this video in English or Hindi.")
+            return None
+        
     text = ""
-    for i in transript:
+    for i in trans:
         text += " "+i['text']
     return text
 
@@ -58,7 +71,23 @@ def summarise(text, prompt):
 # =================================================
 
 media_type = st.sidebar.selectbox("Select Media Type", ("Select", "Video", "Audio", "Youtube Video"))
-
+st.markdown("""
+    <style>
+    .footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        text-align: center;
+        padding: 10px;
+        font-size: 12px;
+        color: #555;
+    }
+    </style>
+    <div class="footer">
+        <p>Created by Kushaagra</p>
+    </div>
+    """, unsafe_allow_html=True)
 if media_type == "Select":
     st.write("**STEP 1:** *Enter your Gemini Api Key*")
     st.write("**STEP 2:** *Select your media type that you want to summarise*")
@@ -101,7 +130,7 @@ elif media_type == "Video":
                     st.warning("Please enter a valid Gemini Api Key.")
 elif media_type == "Youtube Video":
     st.subheader("Youtube Video Summariser")
-
+    st.write("Hindi Language videos are also supported")
     url = st.text_input("Enter the URL of an youtube video  ", placeholder="https://www.youtube.com/watch?v=abcdefg")
     if url:
         id= ''
@@ -111,7 +140,7 @@ elif media_type == "Youtube Video":
         except:
             st.warning("Please enter a valid Youtube URL.")
 
-        with st.spinner("Transcribing..."):
+        with st.spinner("Summarising..."):
                 transript = transcribe_yt(id)
                 # st.write(transript)
                 # if transcription:
